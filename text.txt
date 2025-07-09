@@ -5,10 +5,7 @@ xcopy
 mkdir
 del
 echo. >file name
-rm
-mv
-cat
- Linux command
+
 ls 
 cp
 cd
