@@ -1,0 +1,10 @@
+ windows command 
+cd
+copy
+xcopy
+mkdir
+del
+echo. >file name
+rm
+mv
+cat
