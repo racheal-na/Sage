@@ -1,3 +1,4 @@
+<<<<<<< HEAD
  windows command 
 cd
 copy
@@ -12,3 +13,11 @@ cd
 cat
 rmdir
 rm
+=======
+ 
+cd
+copy
+dir
+mkdir
+rmdir
+>>>>>>> 69fe906 (windows command added)
