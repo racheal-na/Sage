@@ -1,0 +1,4 @@
+When students use cards to eat at the university cafeteria, the queues become long, students re-enter (the line/cafeteria), and it takes a lot of time.
+ 1.Long queues: Students spend a lot of time waiting in line.
+ 2.Students re-entering: This could mean they go back for more food, or perhaps they are rejoining the queue for another reason, contributing to the line length.
+ 3 Time-consuming: The overall process is inefficient and wastes student time.When students use cards to eat at the university cafeteria, the queues become long, students re-enter (the line/cafeteria), and it takes a lot of time.
