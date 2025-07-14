@@ -1,4 +1,5 @@
 #include <iostream>
+using namespace std;
 
 int main() {
     int arr[5] = {10, 20, 30, 40, 50};
@@ -11,6 +12,6 @@ int main() {
 
     average = static_cast<double>(sum) / 5; 
 
-    std::cout << "The average of the array elements is: " << average << std::endl;
+    cout << "The average of the array elements is: " << average <<endl;
     return 0;
 }

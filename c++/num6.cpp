@@ -1,7 +1,7 @@
 #include<iostream>
 using namespace std;
 int main(){
-	int i=i;
+	int i=1;
 
 	cout<<"Even numbers from 1 to 20: "<<endl;
 	while(i<=20)
