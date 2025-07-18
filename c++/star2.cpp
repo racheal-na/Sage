@@ -19,9 +19,10 @@ int a;
 
         cout <<endl; 
     }
-	 for(int i=1;i>=a;--i){
+	 for(int i=1;i>=a;--i)
+	 {
 	 	for(int j=1;j>= ( rows - i);--j)
-	 }
+	
 
     return 0; 
 }
