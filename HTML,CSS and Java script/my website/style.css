@@ -1,0 +1,45 @@
+body {
+     background-color: GoldenRod;
+    }
+    .blueheading{
+        color: aqua;
+        font-size: 30px;
+    }
+    .sage,li,spans{
+        color: brown;
+        font-size: 20px;
+        border: 10px,solid,burlywood;
+    }
+
+     h1 {
+          color: blue;
+     }
+      h2 {
+          color: brown;
+
+      }
+      #headingstyleusingId{
+        color: rgb(158, 234, 8);
+        font-size: 30px;
+      }
+    p  { 
+          color: rgb(250, 3, 250);
+          font-size: 40px;
+      }
+ol li {
+    color: seagreen;
+    font-size: 40px;
+}
+.cssProperty {
+    color: rgb(10, 83, 218);
+    background-color: rgb(190, 183, 175);
+    font-family: Arial, sans-serif;
+    font-size: 10px;
+    font-weight:bold;
+    font-style: oblique;
+    text-align: center;
+    border: 3px,solid,black;
+    border-radius: 10px;
+    padding: 100px;
+    margin: 100px;
+}
