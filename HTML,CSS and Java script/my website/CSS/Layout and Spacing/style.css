@@ -1,0 +1,67 @@
+h1{
+    background-color: aqua;
+    width: 300px;
+    display: inline;
+}
+.hidden{
+    position: relative;
+    top: 60px;
+    z-index: 1;
+
+}
+body{
+    margin: 0px;
+}
+.unr{
+    list-style: circle;
+}
+.ordered{
+    list-style: none;
+}
+.box:hover{
+    background-color: orangered;
+    cursor: pointer;
+}
+p::first-letter{
+    color: blueviolet;
+    font-size: 30px;
+}
+h1::after{
+    content:'{@_@}';
+}
+::marker{
+    color: aquamarine;
+    font-size: 50px;
+}
+::selection{
+    color: red;
+    background: yellow;
+}
+h3:first-child{
+    color: yellowgreen;
+}
+h2{
+    background-color: orangered;
+    display: block;
+    }
+.box{
+    background-color: rgb(251, 154, 9);
+    padding: 20px 30px 40px 40px;
+    margin: 0 auto;
+    position: sticky;
+    top: 15px;
+    max-width: 800px;
+    min-width: 600px;
+   
+}  
+p{
+    position: relative;
+    top: 50px;
+    left: 20px;
+    margin: 0px;
+}  
+a{
+    background-color: brown;
+    display: inline-block;
+
+}
