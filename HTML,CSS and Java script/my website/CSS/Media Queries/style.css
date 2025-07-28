@@ -1,0 +1,27 @@
+body{
+    background-color: red;
+}
+ h1{
+    color: white;
+    font-size: 50px;
+    text-align: center;
+ }
+@media screen and (max-width: 600px){
+    body {
+        background-color: blue;
+    }
+    h1 {
+        font-size: 30px;
+    }
+    
+}
+@media (min-width: 601px) and (max-width: 1000px)
+{
+    body {
+        background-color: yellow;
+    }
+    h1 {
+        color: black;
+        font-size: 40px;
+    }
+}
