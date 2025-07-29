@@ -1,0 +1,270 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: #f0f2f5; /* Light gray background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.forgot-password-container {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    max-width: 950px; /* Adjust max-width as needed for content */
+    width: 90%;
+    overflow: hidden; /* Ensures rounded corners on inner elements */
+}
+
+.forgot-password-box {
+    display: flex; /* Arranges form content and illustration side-by-side */
+    width: 100%;
+}
+
+.fp-form-content {
+    flex: 1.2; /* Takes more space for the form content */
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+}
+
+.header-logo {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 30px; /* Space below the logo */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Align to the left as in the image */
+}
+
+.header-logo i {
+    color: #007bff;
+    margin-right: 10px;
+}
+
+.back-to-login {
+    display: inline-flex; /* Use inline-flex to align icon and text */
+    align-items: center;
+    text-decoration: none;
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 20px; /* Space below this link */
+    transition: color 0.3s ease;
+}
+
+.back-to-login:hover {
+    color: #007bff;
+}
+
+.back-to-login i {
+    margin-right: 8px;
+    font-size: 0.8rem; /* Smaller icon */
+}
+
+h2 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.fp-prompt {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+/* Input Group Styles (reused from previous pages) */
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.input-group input[type="email"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #333;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.input-group input:focus {
+    border-color: #007bff;
+}
+
+/* Submit Button */
+.submit-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-bottom: 25px; /* Space below button */
+}
+
+.submit-button:hover {
+    background-color: #0056b3;
+}
+
+/* Divider for social login (reused) */
+.divider {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #888;
+    margin: 25px 0;
+    position: relative;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 35%; /* Adjusted width */
+    height: 1px;
+    background-color: #ddd;
+}
+
+.divider::before {
+    left: 0;
+}
+
+.divider::after {
+    right: 0;
+}
+
+/* Social Login Buttons (reused) */
+.social-login {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.social-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px; /* Square buttons with radius as in the image */
+    border: 1px solid #ddd;
+    background-color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #555;
+}
+
+.social-btn:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.social-btn.facebook {
+    color: #3b5998;
+}
+
+.social-btn.google {
+    color: #ea4335;
+}
+
+.social-btn.apple {
+    color: #000;
+}
+.fp-illustration {
+    flex: 1; /* Takes slightly less space, adjust as needed */
+    background-color: #f9f9f9; /* Light background for the illustration area */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.fp-illustration img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 900px) {
+    .forgot-password-box {
+        flex-direction: column; /* Stack form and illustration vertically */
+    }
+
+    .fp-form-content, .fp-illustration {
+        flex: 1; /* Each takes full width */
+        border-radius: 0; /* Reset border-radius */
+    }
+
+    .fp-form-content {
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        padding: 30px;
+    }
+
+    .fp-illustration {
+        padding: 30px;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+
+    .header-logo {
+        justify-content: center; /* Center logo when stacked */
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 600px) {
+    .fp-form-content {
+        padding: 20px;
+    }
+
+    h2 {
+        font-size: 1.7rem;
+    }
+
+    .submit-button {
+        font-size: 1rem;
+        padding: 10px;
+    }
+
+    .social-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1rem;
+    }
+
+    .divider::before,
+    .divider::after {
+        width: 30%; /* Adjust divider line width for smaller screens */
+    }
+}

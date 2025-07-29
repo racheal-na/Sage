@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login page</title>
+    <link rel="stylesheet" href="style.css">
+    </head>
+<body>
+  <div class="login-form">
+    <h1>Log in</h1> 
+    <div class="container">
+        <div class="main">
+            <div class="content">
+                <div class="header-logo">
+                    <i class="fas fa-key"></i> Your Logo
+                </div>
+                <h2>Login</h2>
+                <p class="login-prompt">login to access your travelwise account</p>
+
+                <form action="" method="post">
+                    <div class="input-group">
+                        <label for="username-email">Email</label>
+                        <input type="text" id="username-email" name="username" placeholder="john.doe@gmail.com" required autofocus>
+                    </div>
+                    <div class="input-group">
+                        <label for="user-password">Password</label>
+                        <input type="password" id="user-password" name="password" placeholder="*************" required>
+                    </div>
+
+                    <div class="options">
+                        <label class="checkbox-container">Remember me
+                            <input type="checkbox">
+                            <span class="checkmark"></span>
+                        </label>
+                        <a href="#" class="forgot-password">Forgot Password?</a>
+                    </div>
+
+                    <button class="btn" type="submit">
+                        Log in
+                    </button>
+                    <p class="account-link"> Don't have an account?
+                        <a href="#">Register</a>
+                    </p>
+
+                    <div class="divider">Or login with</div>
+
+                    <div class="social-login">
+                        <button type="button" class="social-btn facebook"><i class="fab fa-facebook-f"></i></button>
+                        <button type="button" class="social-btn google"><i class="fab fa-google"></i></button>
+                        <button type="button" class="social-btn apple"><i class="fab fa-apple"></i></button>
+                    </div>
+                </form>
+            </div>
+            <div class="form-img">
+                <img src="bg.png" alt="Login Illustration"/>
+            </div>
+        </div>
+    </div>
+  </div>
+</body>
+</html>

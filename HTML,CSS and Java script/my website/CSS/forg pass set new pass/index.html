@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set a Password</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="set-password-container">
+        <div class="set-password-box">
+            <div class="sp-form-content">
+                <div class="header-logo">
+                    <i class="fas fa-key"></i> Your Logo
+                </div>
+                <h2>Set a password</h2>
+                <p class="sp-prompt">Your previous password has been reset. Please set a new password for your account.</p>
+
+                <form action="" method="post">
+                    <div class="input-group password-group">
+                        <label for="create-password">Create password</label>
+                        <input type="password" id="create-password" placeholder="*****" required>
+                        <span class="password-toggle"><i class="fas fa-eye-slash"></i></span>
+                    </div>
+
+                    <div class="input-group password-group">
+                        <label for="re-enter-password">Re-enter password</label>
+                        <input type="password" id="re-enter-password" placeholder="*****" required>
+                        <span class="password-toggle"><i class="fas fa-eye-slash"></i></span>
+                    </div>
+
+                    <button type="submit" class="set-password-button">Set password</button>
+                </form>
+            </div>
+            <div class="sp-illustration">
+                <img src="ff.png" alt="Set Password Illustration">
+            </div>
+        </div>
+    </div>
+</body>
+</html>

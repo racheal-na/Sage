@@ -1,0 +1,374 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif; /* Corrected to 'Poppins' */
+}
+body{
+   background-color: #f0f2f5; /* Changed body background to a lighter gray as in the image */
+   display: flex; /* Use flexbox to center content */
+   justify-content: center;
+   align-items: center;
+   min-height: 100vh; /* Ensure it takes full viewport height */
+}
+
+/* Remove or hide the top-level h1 if it's not desired visually */
+.login-form > h1 {
+    display: none;
+}
+
+
+.login-form{
+   /* Your original styles, modified for the new layout */
+   position: relative;
+   z-index: 0;
+   background: #fff; /* Main container background is white */
+   padding: 0; /* Remove padding here, main will handle it */
+   display: flex; /* Changed to flex for centering .container */
+   justify-content: center;
+   align-items: center;
+   border-radius: 12px; /* Add border-radius to the main form container */
+   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+   max-height: unset; /* Remove max-height for better responsiveness */
+   /* Removed grid-template-columns as flexbox on .main will handle layout */
+}
+
+.container{
+    max-width: 900px; /* Increased max-width to accommodate both sections */
+    margin: 0 auto;
+    width: 100%; /* Ensure container takes full width of its parent */
+}
+
+.login-form h1{ /* This refers to the h1 inside .content, changed to h2 in HTML */
+    text-align: left; /* Align to left as in the image */
+    font-size: 2rem; /* Adjusted font size */
+    font-weight: 600; /* Bolder font weight */
+    color: #333; /* Darker text color */
+    margin-bottom: 10px;
+}
+.login-form h2{ /* This h2 now refers to the main "Login" heading */
+    line-height: normal; /* Reset line-height */
+    margin-bottom: 5px;
+    font-size: 2rem; /* Adjusted font size */
+    font-weight: 600; /* Bolder font weight */
+    color: #333; /* Darker text color */
+    text-align: left; /* Align to left */
+}
+
+/* New style for the login prompt paragraph */
+.login-prompt {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 25px;
+}
+
+
+.login-form .main{
+    position: relative;
+    display: flex; /* Flexbox to place content and image side-by-side */
+    margin: 0; /* Remove margin here */
+    border-radius: 12px; /* Inherit border-radius from parent */
+    overflow: hidden; /* Hide overflow for rounded corners */
+}
+
+.content{
+ flex-basis: 50%; /* Each section takes 50% width */
+ padding: 40px; /* Adjusted padding */
+ background: #fff;
+ box-shadow: none; /* Removed individual box-shadow as parent has one */
+ border-top-left-radius: 12px; /* Adjust radius to match parent */
+ border-bottom-left-radius: 12px; /* Adjust radius to match parent */
+ display: flex; /* Use flexbox for content inside to align items */
+ flex-direction: column; /* Stack items vertically */
+ justify-content: center; /* Center content vertically */
+}
+
+.form-img{
+     flex-basis: 50%; /* Each section takes 50% width */
+     background: #f9f9f9; /* Lighter background for the image section */
+     padding: 20px; /* Adjusted padding for the image section */
+     border-top-right-radius: 12px; /* Adjust radius */
+     border-bottom-right-radius: 12px; /* Adjust radius */
+     display: flex; /* Use flexbox to center the image */
+     justify-content: center;
+     align-items: center;
+     overflow: hidden; /* Ensure image doesn't overflow */
+}
+
+.form-img img {
+    max-width: 100%; /* Ensure image scales within its container */
+    height: auto; /* Maintain aspect ratio */
+    display: block; /* Remove extra space below image */
+    object-fit: contain; /* Ensure the image fits well */
+}
+
+/* New styles for the 'Your Logo' section */
+.header-logo {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+}
+
+.header-logo i {
+    color: #007bff; /* A nice blue for the icon */
+    margin-right: 10px;
+}
+/* Input Group Styles */
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.input-group input[type="text"],
+.input-group input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #333;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.input-group input[type="text"]:focus,
+.input-group input[type="password"]:focus {
+    border-color: #007bff;
+}
+
+/* Options (Remember me & Forgot Password) */
+.options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+/* Custom Checkbox styles */
+.checkbox-container {
+    display: block;
+    position: relative;
+    padding-left: 25px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #555;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.checkbox-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 18px;
+    width: 18px;
+    background-color: #eee;
+    border-radius: 4px;
+}
+
+.checkbox-container input:checked ~ .checkmark {
+    background-color: #007bff;
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.checkbox-container input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.checkbox-container .checkmark:after {
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+.forgot-password {
+    font-size: 0.9rem;
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
+/* Login Button */
+.btn { /* Your existing .btn class */
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff; /* Blue button as in the image */
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-bottom: 20px; /* Space below button */
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+/* Account link */
+.account-link { /* Your existing .accunt class, renamed for clarity */
+    text-align: center;
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.account-link a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.account-link a:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
+/* Or login with divider */
+.divider {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #888;
+    margin: 25px 0;
+    position: relative;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background-color: #ddd;
+}
+
+.divider::before {
+    left: 0;
+}
+
+.divider::after {
+    right: 0;
+}
+
+/* Social Login Buttons */
+.social-login {
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* Space between buttons */
+}
+
+.social-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #555; /* Default icon color */
+}
+
+.social-btn:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.social-btn.facebook {
+    color: #3b5998;
+}
+
+.social-btn.google {
+    color: #ea4335;
+}
+
+.social-btn.apple {
+    color: #000;
+}
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .login-form .main {
+        flex-direction: column; /* Stack content and image vertically */
+    }
+
+    .content, .form-img {
+        flex-basis: 100%; /* Take full width when stacked */
+        border-radius: 0; /* Reset border-radius when stacked */
+        padding: 30px; /* Adjust padding */
+    }
+
+    .form-img {
+        border-bottom-left-radius: 12px; /* Add radius to bottom left for stacked layout */
+        border-bottom-right-radius: 12px; /* Add radius to bottom right */
+    }
+
+    .content {
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .content, .form-img {
+        padding: 20px;
+    }
+
+    h2 {
+        font-size: 1.7rem;
+    }
+
+    .btn {
+        font-size: 1rem;
+        padding: 10px;
+    }
+
+    .social-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1rem;
+    }
+}
