@@ -1,3 +1,26 @@
+let bulbs= "off";
+const newDiv= document.createElement("h1")
+// document.getElementById("btclick").addEventListener("click",inserHTML)
+$('#btclick').click(inserHTML)
+
+$('#box').css("background-color","orange").css("color","white")
+.css("width","300px")
+.css("height","auto")
+.slideUp(2000)
+// .slideDown(2000)
+// .slideDown(1000)
+// $('#box').slideUP(100)
+// $('#box').slideDown(100)
+
+
+// $('#box').addClass("highlight");
+// $('#box').removeClass("hidden");
+function inserHTML(){
+    document.getElementById("Change me").style.fontSize="35px";
+    document.getElementById("Change me").style.color="red";
+    newDiv.innerText= "added element";
+    document.body.appendChild(newDiv);
+}
 function InsertHTML(){
 document.getElementById("change me").InnerHTML="<h1 style='color: red;'>Hello </h1>"
 }
@@ -87,3 +110,49 @@ console.log(text);
 let x
 
 console.log(x??"the value of x is undefine")
+
+// let student=89
+//  if(student>=85){
+//     console.log("very Good")
+//  }else if(studentMark>85)&&(studentMark>50){
+//     console.log("GOOd!")
+//  }else{
+//     console.log("Bad")
+//  }
+let day=5
+ switch (date) {
+    case 1:
+
+        console.log("sunday");
+        break;
+    case 2:
+    console.log("monady");
+         break;
+    case 3:
+    console.log("tuesday");
+      break;   
+    default:
+        console.log("day is not found");
+        break;
+
+ }
+
+ for (let i=0; i<5; i++){
+    console.log(i)
+ }
+ let books=["heary poter","love up to death","me and u","the power"]
+ for(let book of books){
+     console.log(book)
+ }
+ for(let key in person){
+    console.log(key,person[key])
+ }
+
+const arr=["apple","peach","pear"]
+for(i=0; i<10; i++){
+    console.log(i)
+}
+
+
+
+
