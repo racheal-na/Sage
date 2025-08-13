@@ -1,5 +1,5 @@
 function Button(props){
-    return<a className="btn" href="#">{props.name}</a>
+    return<a style={props.style} className="btn" href="#">{props.name}</a>
 
 }
 
