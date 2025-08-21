@@ -22,6 +22,8 @@ import About from "./assets/Pagges/About";
 import LaziLoad from "./assets/Pagges/LaziLoad";
 import Posts from "./assets/Pagges/Posts";
 import CounterApp from "./assets/Pagges/CounterApp";
+import { Provider } from "react-redux";
+import { store } from "./assets/Redux/Store";
 const Stack= createNativeStackNavigator()
 export default function App() {
   const [on, setOn] = useState(true);
@@ -36,7 +38,8 @@ export default function App() {
     {name: 'estif',id: '8'}
   ]);
   return (
-    
+    <Provider store={store}>
+
     <NavigationContainer>
 
       <Stack.Navigator initialRouteName="Home">
@@ -56,7 +59,7 @@ export default function App() {
             
  <Text style={styles.item}>{item.name}</Text>
 
-             )}
+)}
              />
       {/* <ScrollView>
       {people.map((item)=>(
@@ -64,11 +67,12 @@ export default function App() {
             <Text style={styles.item}>{item.name}</Text>
           </View>
         )
-      )}
+        )}
       </ScrollView> */}
       <ActivityIndicator/>
     </View>
     </NavigationContainer>
+        </Provider>
     
     // <SafeAreaProvider>
     //   <SafeAreaView>

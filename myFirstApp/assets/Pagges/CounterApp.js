@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
+import { useSelector,useDispatch } from 'react-redux';
+import { add,subtract,reset } from '../Redux/counterSlice'
+
 
 export default function CounterApp(){
-     const [count, setCount] = useState(0);
+     
+     const count=useSelector(state=>state.counter.value);
+  const dispatch = useDispatch();
+
     return(
       <View style={{flex: 1,
     justifyContent: 'center',
@@ -14,9 +20,9 @@ export default function CounterApp(){
     justifyContent: 'space-between',
     height: 150
 }}>
-        <Button title="Add" onPress={() => setCount(count + 1)} />
-        <Button title="Subtract" onPress={() => setCount(count - 1)} />
-        <Button title="Reset" onPress={() => setCount(0)} />
+        <Button title="Add" onPress={() => dispatch(add())} />
+        <Button title="Subtract" onPress={() =>dispatch(subtract()) } />
+        <Button title="Reset" onPress={() => dispatch(reset())}/>
       </View>
 
 </View>
