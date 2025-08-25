@@ -100,9 +100,7 @@ return(
     {/* render todo list */}
     <FlatList data={todoList} renderItem={renderTodos} keyExtractor={(item)=>item.id}
         ListEmptyComponent={<Fallback/>}/>
-    {
-        todoList.length<=0 && <Fallback/>
-    }
+   
     </View>
 
        

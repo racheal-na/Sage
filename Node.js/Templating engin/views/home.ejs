@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css"/>
+    </head>
+    <body>
+        <%- include("partials/header") %>
+        <h1> Hi from ejs</h1>
+        <% if(isLogdin){ %>
+        <h1> welcome <%= name %></h1>
+        <% } else { %>
+            <h1 class="login">please Login</h1>
+        <% } %>
+    </body>
+</html>
