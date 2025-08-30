@@ -1,5 +1,5 @@
 
-import Signup from './pages/Signup';
+import Signup from './components/Signup';
 
 function App() {
   return (
