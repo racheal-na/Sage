@@ -1,7 +1,7 @@
 const Appointment = require('../models/Appointment');
 const Case = require('../models/Case');
 const Notification = require('../models/Notification');
-const User = require('../User');
+const User = require('../models/User');
 const nodemailer = require('nodemailer');
 
 // @desc    Get all appointments for a user

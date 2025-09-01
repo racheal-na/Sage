@@ -11,7 +11,7 @@ const notificationSchema = new mongoose.Schema({
     },
     type:{
         type: String,
-        enuim:['appointment','ducmont','case','sytem'],
+        enum:['appointment','document','case','system'],
         required:true
     },
     recipient:{
@@ -19,13 +19,13 @@ const notificationSchema = new mongoose.Schema({
         ref:'User',
         required:true
     },
-    relatedEnitity:{
+    relatedEntity:{
         type:mongoose.Schema.Types.ObjectId,
         refPath:'onModel'
     },
     onModel:{
         type:String,
-        enium:['Case','Document','Appointment']
+        enum:['Case','Document','Appointment']
     },
     read:{
         type:Boolean,

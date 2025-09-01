@@ -59,7 +59,7 @@ const caseSchema = new mongoose.Schema({
     }
 });
 
-userSchema.pre('save',async function (next) {
+caseSchema.pre('save',async function (next) {
     this.updatedAt = Date.now();
     next();
 });

@@ -22,7 +22,7 @@ exports.getCases= async (req,res)=>{
         res.status(500).json({message:'Server error'});
     }
 };
- exports.getCases = async(req,res)=>{
+ exports.getCase = async(req,res)=>{
     try{
         const caseItem = await Case.findById(req.params.id)
         .populate('client','name email')
@@ -133,3 +133,43 @@ exports.getCases= async (req,res)=>{
         res.status(500).json({message: 'Server error'})
     }
  };
+ // Add this at the bottom of caseController.js
+
+exports.addNote = async (req, res) => {
+  try {
+    const { content } = req.body;
+
+    const caseItem = await Case.findById(req.params.id);
+    if (!caseItem) {
+      return res.status(404).json({ message: 'Case not found' });
+    }
+
+    // Permission check
+    if (
+      req.user.userType === 'client' &&
+      caseItem.client.toString() !== req.user.id
+    ) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+    if (
+      req.user.userType === 'lawyer' &&
+      caseItem.lawyer.toString() !== req.user.id
+    ) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    // Push new note
+    caseItem.notes.push({
+      content,
+      createdBy: req.user.id,
+    });
+
+    await caseItem.save();
+    await caseItem.populate('notes.createdBy', 'name');
+
+    res.status(201).json(caseItem.notes);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

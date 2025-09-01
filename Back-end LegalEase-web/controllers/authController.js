@@ -1,4 +1,4 @@
-const User =require('../User');
+const User =require('../models/User');
 const jwt = require('jsonwebtoken');
 const Notification =require('../models/Notification');
 
@@ -10,7 +10,7 @@ const generateToken=(id)=>{
  
 exports.signup = async (req,res)=>{
     try{
-        const{name,email,password,userType}=req.body;
+        const{name,email,password,phone,userType,barNumber}=req.body;
 
         const userExists = await User.findOne({email});
         if(userExists){
@@ -20,13 +20,15 @@ exports.signup = async (req,res)=>{
             name,
             email,
             password,
-            userType
+            phone,
+            userType,
+            barNumber: userType === 'lawyer'? barNumber : undefined
         });
         if(user){
             await Notification.create({
                 title:'Welcome to Legal Ease Lite',
                 message:'Welcome${name}! Your account has been successfully created.',
-                type:'sytem',
+                type:'system',
                 recipient:user._id
             });
 
@@ -34,12 +36,14 @@ exports.signup = async (req,res)=>{
                 _id:user._id,
                 name:user.name,
                 email:user.email,
+                phone:user.phone,
                 userType:user.userType,
+                barNumber:user.barNumber,
                 token:generateToken(user._id),
             });
         }
     }catch(error){
-        console.error(error);
+        console.error('Signup error:', error);
         res.status(500).json({message: 'server error'});
     }
 };
@@ -54,14 +58,16 @@ exports.login = async (req,res)=>{
                   _id:user._id,
                 name:user.name,
                 email:user.email,
+                phone:user.phone,
                 userType:user.userType,
+                barNumber:user.userType,
                 token:generateToken(user._id),
             });
         }else{
             res.status(401).json({massage: 'Invalid email or password'});
         }
     }catch(error){
-        console.error(error);
+        console.error('Login error:',error);
         res.status(500).json({message:'Server error'});
     }
 };
@@ -72,7 +78,17 @@ exports.getMe = async (req,res)=>{
         .populate('cases')
         .populate('appointments');
 
-        res.json(user);
+        res.json({
+        _id:user._id,
+        name:user.name,
+        email:user.email,
+        phone:user.phone,
+        userType:user.userType,
+        barNumber:user.barNumber,
+        cases:user.cases,
+        appointments:user.appointments 
+    })
+
     }catch(error){
         console.error(error);
         res.status(500).json({message: 'Server error'});
@@ -84,7 +100,7 @@ exports.updateProfile = async (req,res)=>{
         if (user){
             user.name=req.body.name || user.name;
             user.email=req.body.email || user.email;
-            
+            user.phone=req.body.phone || user.phone;
 
             if(req.body.password){
                 user.password= req.body.password;
@@ -94,14 +110,16 @@ exports.updateProfile = async (req,res)=>{
                 _id:user._id,
                 name:user.name,
                 email:user.email,
+                phone:user.phone,
                 userType:user.userType,
+                barNumber:user.barNumber,
                 token:generateToken(user._id),
             });
         }else{
             res.status(404).json({message: 'User not found'})
         }
     }catch(error){
-        console.error(error);
+        console.error('Update profile error:',error);
         res.status(500).json({message:'Server error'});
     }
 };
