@@ -12,20 +12,20 @@ const caseSchema = new mongoose.Schema({
     },
     caseType:{
         type:String,
-        enuim:['criminal','civil','family','employment'],
+        enum:['criminal','civil','family','employment'],
         required: true
     },
     status:{
         type: String,
-        enuim: ['open','closed','pending'],
+        enum: ['open','closed','in progress','pending'],
         default: 'open'
     },
-    client:{
+    clientId:{
         type: mongoose.Schema.Types.ObjectId,
         ref:'user',
         required: true
     },
-    lawyer:{
+    lawyerId:{
         type: mongoose.Schema.Types.ObjectId,
         ref:'user',
         required: true
@@ -53,15 +53,45 @@ const caseSchema = new mongoose.Schema({
             type: Date,
             default: Date.now
         },
+    uploadedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
     upatedAt:{
         type: Date,
         default: Date.now
+    },
+    notes: [{
+    content: {
+      type: String,
+      required: true,
+      maxlength: [1000, 'Note cannot exceed 1000 characters']
+    },
+    createdBy: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'User',
+      required: true 
+    },
+    createdAt: { 
+      type: Date, 
+      default: Date.now 
+    },
+    isPrivate: {
+      type: Boolean,
+      default: false
     }
+  }],
 });
 
 caseSchema.pre('save',async function (next) {
     this.updatedAt = Date.now();
     next();
 });
+// Indexes for better query performance
+caseSchema.index({ adminId: 1, status: 1 });
+caseSchema.index({ clientId: 1 });
+caseSchema.index({ category: 1 });
+
 
 module.exports=mongoose.model('Case',caseSchema);

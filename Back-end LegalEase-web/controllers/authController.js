@@ -1,125 +1,211 @@
-const User =require('../models/User');
-const jwt = require('jsonwebtoken');
-const Notification =require('../models/Notification');
+const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const User = require("../models/User");
+const { catchAsync } = require("../middleware/Error");
+const { createNotification } = require("../utils/notifications");
 
-const generateToken=(id)=>{
-    return jwt.sign({id},process.env.JWT_SECRET,{
-        expiresIn: process.env.JWT_EXPIRE,
+// Generate JWT token
+const signToken = id => {
+  console.log("jwt error",process.env.JWT_SECRET);
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN
+  });
+};
+
+// Create and send token
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
+
+  // Remove password from output
+  user.password = undefined;
+
+  res.status(statusCode).json({
+    success: true,
+    token,
+    user
+  });
+};
+
+// ===================== SIGNUP =====================
+exports.signup = catchAsync(async (req, res, next) => {
+  const { name, email, password, role, phone } = req.body;
+
+  // 🔍 Debugging: check what role is coming in the request
+  console.log("Incoming role value:", role);
+
+  // Check if user already exists
+  const existingUser = await User.findOne({ email });
+  console.log("existing user", existingUser);
+
+  if (existingUser) {
+    return res.status(400).json({
+      success: false,
+      message: "User already exists with this email"
     });
-};
- 
-exports.signup = async (req,res)=>{
-    try{
-        const{name,email,password,phone,userType,barNumber}=req.body;
+  }
 
-        const userExists = await User.findOne({email});
-        if(userExists){
-            return res.status(400).json({message: 'User already exists'});
-        }
-        const user = await User.create({
-            name,
-            email,
-            password,
-            phone,
-            userType,
-            barNumber: userType === 'lawyer'? barNumber : undefined
-        });
-        if(user){
-            await Notification.create({
-                title:'Welcome to Legal Ease Lite',
-                message:'Welcome${name}! Your account has been successfully created.',
-                type:'system',
-                recipient:user._id
-            });
+  // Create new user
+  const newUser = await User.create({
+    name,
+    email,
+    password,
+    role,   // <-- this is where the invalid "admin" role causes ValidationError
+    phone
+  });
 
-            res.status(201).json({
-                _id:user._id,
-                name:user.name,
-                email:user.email,
-                phone:user.phone,
-                userType:user.userType,
-                barNumber:user.barNumber,
-                token:generateToken(user._id),
-            });
-        }
-    }catch(error){
-        console.error('Signup error:', error);
-        res.status(500).json({message: 'server error'});
-    }
-};
+  // Create welcome notification
+  if (newUser.role === "client") {
+    await createNotification(
+      "Welcome to Legal Ease Lite",
+      "Thank you for registering with Legal Ease Lite. You can now book appointments and manage your cases.",
+      "system",
+      newUser._id
+    );
+  }
+  if (role === "admin") {
+  return res.status(400).json({
+    success: false,
+    message: "You cannot register as an admin"
+  });
+}
 
-exports.login = async (req,res)=>{
-    try{
-        const{email,password}=req.body;
-        const user = await User.findOne({email});
-        
-        if(user && (await user.comparePassword(password))){
-            res.json({
-                  _id:user._id,
-                name:user.name,
-                email:user.email,
-                phone:user.phone,
-                userType:user.userType,
-                barNumber:user.userType,
-                token:generateToken(user._id),
-            });
-        }else{
-            res.status(401).json({massage: 'Invalid email or password'});
-        }
-    }catch(error){
-        console.error('Login error:',error);
-        res.status(500).json({message:'Server error'});
-    }
-};
 
-exports.getMe = async (req,res)=>{
-    try{
-        const user = await User.findById(req.user.id)
-        .populate('cases')
-        .populate('appointments');
+  createSendToken(newUser, 201, res);
+});
 
-        res.json({
-        _id:user._id,
-        name:user.name,
-        email:user.email,
-        phone:user.phone,
-        userType:user.userType,
-        barNumber:user.barNumber,
-        cases:user.cases,
-        appointments:user.appointments 
-    })
 
-    }catch(error){
-        console.error(error);
-        res.status(500).json({message: 'Server error'});
-    }
-};
-exports.updateProfile = async (req,res)=>{
-    try{
-        const user = await User.findById(req.user.id);
-        if (user){
-            user.name=req.body.name || user.name;
-            user.email=req.body.email || user.email;
-            user.phone=req.body.phone || user.phone;
+// ===================== LOGIN =====================
+exports.login = catchAsync(async (req, res, next) => {
+  const { email, password } = req.body;
 
-            if(req.body.password){
-                user.password= req.body.password;
-            }
-            const updatedUser= await user.save();
-            res.json({
-                _id:user._id,
-                name:user.name,
-                email:user.email,
-                phone:user.phone,
-                userType:user.userType,
-                barNumber:user.barNumber,
-                token:generateToken(user._id),
-            });
-        }else{
-            res.status(404).json({message: 'User not found'})
-        }
-    }catch(error){
-        console.error('Update profile error:',error);
-        res.status(500).json({message:'Server error'});
-    }
+  // Check if email and password exist
+  if (!email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: "Please provide email and password"
+    });
+  }
+
+  // Check if user exists and password is correct
+  const user = await User.findOne({ email }).select("+password");
+
+  if (!user || !(await user.correctPassword(password, user.password))) {
+    return res.status(401).json({
+      success: false,
+      message: "Incorrect email or password"
+    });
+  }
+
+  // Check if user is active
+  if (user.isActive === false) {
+    return res.status(401).json({
+      success: false,
+      message: "Account has been deactivated. Please contact support."
+    });
+  }
+
+  createSendToken(user, 200, res);
+});
+
+// ===================== GET CURRENT USER =====================
+exports.getMe = catchAsync(async (req, res, next) => {
+  res.status(200).json({
+    success: true,
+    user: req.user
+  });
+});
+
+// ===================== UPDATE USER DETAILS =====================
+exports.updateDetails = catchAsync(async (req, res, next) => {
+  const filteredBody = {
+    name: req.body.name,
+    email: req.body.email,
+    phone: req.body.phone
+  };
+
+  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+    new: true,
+    runValidators: true
+  });
+
+  res.status(200).json({
+    success: true,
+    user: updatedUser
+  });
+});
+
+// ===================== UPDATE PASSWORD =====================
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.user.id).select("+password");
+
+  // Check current password
+  if (!(await user.correctPassword(req.body.currentPassword, user.password))) {
+    return res.status(401).json({
+      success: false,
+      message: "Current password is incorrect"
+    });
+  }
+
+  user.password = req.body.newPassword;
+  await user.save();
+
+  createSendToken(user, 200, res);
+});
+
+// ===================== FORGOT PASSWORD =====================
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "No user found with that email"
+    });
+  }
+
+  // Generate reset token
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  user.passwordResetToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+  user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  await user.save({ validateBeforeSave: false });
+
+  // Instead of sending email, return reset URL in JSON
+  const resetURL = `${req.protocol}://${req.get("host")}/api/auth/resetPassword/${resetToken}`;
+
+  res.status(200).json({
+    success: true,
+    message: "Password reset token generated",
+    resetURL
+  });
+});
+
+// ===================== RESET PASSWORD =====================
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  const hashedToken = crypto.createHash("sha256").update(req.params.token).digest("hex");
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      message: "Token is invalid or expired"
+    });
+  }
+
+  user.password = req.body.password;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  createSendToken(user, 200, res);
+});
+
+// ===================== LOGOUT =====================
+exports.logout = (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully"
+  });
 };

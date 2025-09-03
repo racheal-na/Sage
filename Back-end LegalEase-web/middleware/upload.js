@@ -2,68 +2,62 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+// Ensure upload directories exist
+const ensureUploadDirs = () => {
+  const dirs = [
+    './uploads/documents',
+    './uploads/constitutions'
+  ];
+  
+  dirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+};
 
-// Configure storage for case documents
+ensureUploadDirs();
+
+// Set up storage for documents
 const documentStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const caseId = req.params.caseId || 'general';
-    const userDir = path.join(uploadsDir, 'documents', `user_${req.user.id}`, `case_${caseId}`);
-    
-    if (!fs.existsSync(userDir)) {
-      fs.mkdirSync(userDir, { recursive: true });
-    }
-    
-    cb(null, userDir);
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/documents/');
   },
-  filename: (req, file, cb) => {
-    // Create a safe filename
+  filename: function (req, file, cb) {
+    // Create unique filename with timestamp
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
-    const baseName = path.basename(file.originalname, extension);
-    const safeName = baseName.replace(/[^a-zA-Z0-9]/g, '_') + '-' + uniqueSuffix + extension;
-    
-    cb(null, safeName);
+    cb(null, 'doc-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
-// Configure storage for constitution documents
+// Set up storage for constitutions
 const constitutionStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const constitutionDir = path.join(uploadsDir, 'constitution');
-    
-    if (!fs.existsSync(constitutionDir)) {
-      fs.mkdirSync(constitutionDir, { recursive: true });
-    }
-    
-    cb(null, constitutionDir);
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/constitutions/');
   },
-  filename: (req, file, cb) => {
-    // Keep original name for constitution documents
-    cb(null, file.originalname);
+  filename: function (req, file, cb) {
+    // Create unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'const-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
-// File filter function
+// File filter for documents
 const fileFilter = (req, file, cb) => {
-  // Allow certain file types
-  const allowedTypes = /jpeg|jpg|png|pdf|doc|docx|txt/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-
-  if (mimetype && extname) {
-    return cb(null, true);
+  // Allow only specific file types
+  if (file.mimetype === 'application/pdf' || 
+      file.mimetype === 'application/msword' ||
+      file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      file.mimetype === 'image/jpeg' ||
+      file.mimetype === 'image/png') {
+    cb(null, true);
   } else {
-    cb(new Error('Error: Only document and image files are allowed!'));
+    cb(new Error('Only PDF, DOC, DOCX, JPEG, and PNG files are allowed'), false);
   }
 };
 
 // Create multer instances
-const uploadDocument = multer({
+exports.uploadDocument = multer({
   storage: documentStorage,
   limits: {
     fileSize: 10 * 1024 * 1024 // 10MB limit
@@ -71,22 +65,41 @@ const uploadDocument = multer({
   fileFilter: fileFilter
 });
 
-const uploadConstitution = multer({
+exports.uploadConstitution = multer({
   storage: constitutionStorage,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
+    fileSize: 20 * 1024 * 1024 // 20MB limit for constitutions
   },
   fileFilter: (req, file, cb) => {
-    // Only allow PDFs for constitution
-    if (path.extname(file.originalname).toLowerCase() === '.pdf') {
+    // Allow only PDFs for constitutions
+    if (file.mimetype === 'application/pdf') {
       cb(null, true);
     } else {
-      cb(new Error('Error: Only PDF files are allowed for constitution documents!'));
+      cb(new Error('Only PDF files are allowed for constitutions'), false);
     }
   }
 });
 
-module.exports = {
-  uploadDocument,
-  uploadConstitution
+// Error handling middleware for multer
+exports.handleUploadError = (error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        success: false,
+        message: 'File too large. Please upload a smaller file.'
+      });
+    }
+  }
+  
+  if (error.message.includes('Only')) {
+    return res.status(400).json({
+      success: false,
+      message: error.message
+    });
+  }
+  
+  res.status(500).json({
+    success: false,
+    message: 'An error occurred during file upload'
+  });
 };

@@ -1,18 +1,21 @@
 const express = require('express');
+const { protect, authorize } = require('../middleware/auth');
 const {
   getAppointments,
   getAppointment,
   createAppointment,
   updateAppointment,
   deleteAppointment,
-  sendReminder
+  getUpcomingAppointments,
+  sendReminder,
+  updateAppointmentStatus
 } = require('../controllers/appointmentController');
-const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
 router.use(protect);
 
+// CRUD routes
 router.route('/')
   .get(getAppointments)
   .post(createAppointment);
@@ -22,7 +25,14 @@ router.route('/:id')
   .put(updateAppointment)
   .delete(deleteAppointment);
 
-router.route('/:id/reminder')
-  .post(sendReminder);
+// Additional routes
+router.route('/upcoming')
+  .get(getUpcomingAppointments);
+
+router.route('/:id/send-reminder')
+  .post(authorize('lawyer'), sendReminder);
+
+router.route('/:id/status')
+  .patch(authorize('lawyer'), updateAppointmentStatus);
 
 module.exports = router;

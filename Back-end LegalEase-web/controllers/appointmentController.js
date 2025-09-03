@@ -1,293 +1,217 @@
 const Appointment = require('../models/Appointment');
-const Case = require('../models/Case');
-const Notification = require('../models/Notification');
 const User = require('../models/User');
-const nodemailer = require('nodemailer');
+const Case = require('../models/Case');
+const { catchAsync } = require('../middleware/Error');
+const { createNotification, sendAppointmentConfirmation } = require('../utils/notifications');
 
-// @desc    Get all appointments for a user
-// @route   GET /api/appointments
-// @access  Private
-exports.getAppointments = async (req, res) => {
-  try {
-    let appointments;
-    if (req.user.userType === 'lawyer') {
-      appointments = await Appointment.find({ lawyer: req.user.id })
-        .populate('client', 'name email phone')
-        .populate('case', 'title');
-    } else {
-      appointments = await Appointment.find({ client: req.user.id })
-        .populate('lawyer', 'name email phone barNumber')
-        .populate('case', 'title');
-    }
+// Get all appointments
+exports.getAppointments = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10, status, upcoming } = req.query;
+  const query = {};
 
-    res.json(appointments);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+  if (req.user.role === 'lawyer') query.lawyerId = req.user.id;
+  else query.clientId = req.user.id;
+
+  if (status && status !== 'all') query.status = status;
+  if (upcoming === 'true') query.date = { $gte: new Date() };
+
+  const appointments = await Appointment.find(query)
+    .populate('lawyerId', 'name email phone')
+    .populate('clientId', 'name email phone')
+    .populate('caseId', 'title')
+    .sort({ date: 1, time: 1 })
+    .limit(limit * 1)
+    .skip((page - 1) * limit);
+
+  const total = await Appointment.countDocuments(query);
+
+  res.status(200).json({
+    success: true,
+    count: appointments.length,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: parseInt(page),
+    appointments
+  });
+});
+
+// Get upcoming appointments (next 7 days)
+exports.getUpcomingAppointments = catchAsync(async (req, res) => {
+  const today = new Date();
+  const sevenDaysFromNow = new Date();
+  sevenDaysFromNow.setDate(today.getDate() + 7);
+
+  const query = {
+    date: { $gte: today, $lte: sevenDaysFromNow },
+    status: 'Scheduled'
+  };
+
+  if (req.user.role === 'lawyer') query.lawyerId = req.user.id;
+  else query.clientId = req.user.id;
+
+  const appointments = await Appointment.find(query)
+    .populate('lawyerId', 'name email phone')
+    .populate('clientId', 'name email phone')
+    .populate('caseId', 'title')
+    .sort({ date: 1, time: 1 });
+
+  res.status(200).json({
+    success: true,
+    count: appointments.length,
+    appointments
+  });
+});
+
+// Get single appointment
+exports.getAppointment = catchAsync(async (req, res) => {
+  const appointment = await Appointment.findById(req.params.id)
+    .populate('lawyerId', 'name email phone')
+    .populate('clientId', 'name email phone')
+    .populate('caseId', 'title');
+
+  if (!appointment)
+    return res.status(404).json({ success: false, message: 'Appointment not found' });
+
+  if (req.user.role === 'lawyer' && appointment.lawyerId._id.toString() !== req.user.id)
+    return res.status(403).json({ success: false, message: 'Not authorized' });
+
+  if (req.user.role === 'client' && appointment.clientId._id.toString() !== req.user.id)
+    return res.status(403).json({ success: false, message: 'Not authorized' });
+
+  res.status(200).json({ success: true, appointment });
+});
+
+// Create appointment
+exports.createAppointment = catchAsync(async (req, res) => {
+  const { title, description, date, time, clientId, caseId, location, meetingLink } = req.body;
+
+  let lawyerUser;
+
+  if (req.user.role === 'lawyer') lawyerUser = req.user;
+  else {
+    lawyerUser = await User.findOne({ role: 'lawyer', isActive: true });
+    if (!lawyerUser) return res.status(400).json({ success: false, message: 'No available lawyer' });
   }
-};
 
-// @desc    Get single appointment
-// @route   GET /api/appointments/:id
-// @access  Private
-exports.getAppointment = async (req, res) => {
-  try {
-    const appointment = await Appointment.findById(req.params.id)
-      .populate('client', 'name email phone')
-      .populate('lawyer', 'name email phone barNumber')
-      .populate('case', 'title');
+  const appointment = await Appointment.create({
+    title,
+    description,
+    date,
+    time,
+    lawyerId: lawyerUser._id,
+    clientId: req.user.role === 'lawyer' ? clientId : req.user.id,
+    caseId,
+    location,
+    meetingLink,
+    status: req.user.role === 'lawyer' ? 'Scheduled' : 'Pending'
+  });
 
-    if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found' });
-    }
+  await appointment.populate('lawyerId', 'name email phone').populate('clientId', 'name email phone').populate('caseId', 'title');
 
-    // Check if user has access to this appointment
-    if (req.user.userType === 'client' && appointment.client._id.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    if (req.user.userType === 'lawyer' && appointment.lawyer._id.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    res.json(appointment);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+  // Send notifications
+  if (req.user.role === 'lawyer') {
+    await sendAppointmentConfirmation(appointment);
+    await createNotification(
+      'New Appointment Scheduled',
+      `Your appointment "${title}" is scheduled for ${new Date(date).toLocaleDateString()} at ${time}`,
+      'appointment',
+      clientId,
+      { entityType: 'Appointment', entityId: appointment._id }
+    );
+  } else {
+    await createNotification(
+      'New Appointment Request',
+      `Client ${req.user.name} requested appointment "${title}" on ${new Date(date).toLocaleDateString()} at ${time}`,
+      'appointment',
+      lawyerUser._id,
+      { entityType: 'Appointment', entityId: appointment._id }
+    );
   }
-};
 
-// @desc    Create new appointment
-// @route   POST /api/appointments
-// @access  Private
-exports.createAppointment = async (req, res) => {
-  try {
-    const { title, description, date, duration, caseId, clientId } = req.body;
+  res.status(201).json({
+    success: true,
+    message: req.user.role === 'lawyer' ? 'Appointment created' : 'Appointment request submitted',
+    appointment
+  });
+});
 
-    // For clients, they can only create appointments with their lawyer
-    let lawyerId;
-    if (req.user.userType === 'client') {
-      const caseItem = await Case.findById(caseId);
-      if (!caseItem || caseItem.client.toString() !== req.user.id) {
-        return res.status(403).json({ message: 'Access denied' });
-      }
-      lawyerId = caseItem.lawyer;
-    } else {
-      lawyerId = req.user.id;
-    }
+// Update appointment
+exports.updateAppointment = catchAsync(async (req, res) => {
+  const appointment = await Appointment.findById(req.params.id);
+  if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
 
-    const appointment = await Appointment.create({
-      title,
-      description,
-      date,
-      duration,
-      case: caseId,
-      client: clientId || req.user.id,
-      lawyer: lawyerId
-    });
+  if (
+    (req.user.role === 'lawyer' && appointment.lawyerId.toString() !== req.user.id) ||
+    (req.user.role === 'client' && appointment.clientId.toString() !== req.user.id)
+  )
+    return res.status(403).json({ success: false, message: 'Not authorized' });
 
-    // Add appointment to client's appointments array
-    await User.findByIdAndUpdate(appointment.client, {
-      $push: { appointments: appointment._id }
-    });
+  const allowedUpdates = ['title', 'description', 'date', 'time', 'location', 'meetingLink'];
+  allowedUpdates.forEach((field) => {
+    if (req.body[field] !== undefined) appointment[field] = req.body[field];
+  });
 
-    // Add appointment to lawyer's appointments array
-    await User.findByIdAndUpdate(appointment.lawyer, {
-      $push: { appointments: appointment._id }
-    });
+  // Clients can only update pending requests
+  if (req.user.role === 'client' && appointment.status !== 'Pending')
+    return res.status(403).json({ success: false, message: 'Can only update pending appointments' });
 
-    // Populate the appointment
-    await appointment.populate('client', 'name email phone');
-    await appointment.populate('lawyer', 'name email phone barNumber');
-    await appointment.populate('case', 'title');
+  await appointment.save();
+  await appointment.populate('lawyerId', 'name email phone').populate('clientId', 'name email phone').populate('caseId', 'title');
 
-    // Create notification for the other party
-    const recipient = req.user.userType === 'client' ? appointment.lawyer : appointment.client;
-    
-    await Notification.create({
-      title: 'New Appointment Scheduled',
-      message: `A new appointment "${title}" has been scheduled for ${date}.`,
-      type: 'appointment',
-      recipient,
-      relatedEntity: appointment._id,
-      onModel: 'Appointment'
-    });
+  res.status(200).json({ success: true, message: 'Appointment updated', appointment });
+});
 
-    res.status(201).json(appointment);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
+// Update appointment status (admin only)
+exports.updateAppointmentStatus = catchAsync(async (req, res) => {
+  const { status } = req.body;
+  const appointment = await Appointment.findById(req.params.id)
+    .populate('lawyerId', 'name email phone')
+    .populate('clientId', 'name email phone');
 
-// @desc    Update appointment
-// @route   PUT /api/appointments/:id
-// @access  Private
-exports.updateAppointment = async (req, res) => {
-  try {
-    let appointment = await Appointment.findById(req.params.id);
-    if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found' });
-    }
+  if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
+  if (appointment.lawyerId._id.toString() !== req.user.id) return res.status(403).json({ success: false, message: 'Not authorized' });
 
-    // Check if user has access to this appointment
-    if (req.user.userType === 'client' && appointment.client.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
+  appointment.status = status;
+  await appointment.save();
 
-    if (req.user.userType === 'lawyer' && appointment.lawyer.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
+  await createNotification(
+    'Appointment Status Updated',
+    `Your appointment "${appointment.title}" is now ${status}`,
+    'appointment',
+    appointment.clientId._id,
+    { entityType: 'Appointment', entityId: appointment._id }
+  );
 
-    appointment = await Appointment.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    })
-      .populate('client', 'name email phone')
-      .populate('lawyer', 'name email phone barNumber')
-      .populate('case', 'title');
+  if (status === 'Scheduled') await sendAppointmentConfirmation(appointment);
 
-    // Create notification for the other party
-    const recipient = req.user.userType === 'client' ? appointment.lawyer._id : appointment.client._id;
-    
-    await Notification.create({
-      title: 'Appointment Updated',
-      message: `The appointment "${appointment.title}" has been updated.`,
-      type: 'appointment',
-      recipient,
-      relatedEntity: appointment._id,
-      onModel: 'Appointment'
-    });
+  res.status(200).json({ success: true, message: `Appointment status updated to ${status}`, appointment });
+});
 
-    res.json(appointment);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
+// Delete appointment
+exports.deleteAppointment = catchAsync(async (req, res) => {
+  const appointment = await Appointment.findById(req.params.id);
+  if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
 
-// @desc    Delete appointment
-// @route   DELETE /api/appointments/:id
-// @access  Private
-exports.deleteAppointment = async (req, res) => {
-  try {
-    const appointment = await Appointment.findById(req.params.id);
+  if (
+    (req.user.role === 'lawyer' && appointment.lawyerId.toString() !== req.user.id) ||
+    (req.user.role === 'client' && appointment.clientId.toString() !== req.user.id)
+  )
+    return res.status(403).json({ success: false, message: 'Not authorized' });
 
-    if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found' });
-    }
+  await Appointment.findByIdAndDelete(req.params.id);
+  res.status(200).json({ success: true, message: 'Appointment deleted' });
+});
 
-    // Check if user has access to this appointment
-    if (req.user.userType === 'client' && appointment.client.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
+// Send appointment reminder
+exports.sendReminder = catchAsync(async (req, res) => {
+  const appointment = await Appointment.findById(req.params.id)
+    .populate('lawyerId', 'name email phone')
+    .populate('clientId', 'name email phone');
 
-    if (req.user.userType === 'lawyer' && appointment.lawyer.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
+  if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
+  if (appointment.lawyerId._id.toString() !== req.user.id) return res.status(403).json({ success: false, message: 'Not authorized' });
 
-    // Remove appointment from client's appointments array
-    await User.findByIdAndUpdate(appointment.client, {
-      $pull: { appointments: appointment._id }
-    });
+  await sendAppointmentConfirmation(appointment);
 
-    // Remove appointment from lawyer's appointments array
-    await User.findByIdAndUpdate(appointment.lawyer, {
-      $pull: { appointments: appointment._id }
-    });
-
-    await Appointment.findByIdAndDelete(req.params.id);
-
-    // Create notification for the other party
-    const recipient = req.user.userType === 'client' ? appointment.lawyer : appointment.client;
-    
-    await Notification.create({
-      title: 'Appointment Cancelled',
-      message: `The appointment "${appointment.title}" has been cancelled.`,
-      type: 'appointment',
-      recipient,
-      relatedEntity: appointment._id,
-      onModel: 'Appointment'
-    });
-
-    res.json({ message: 'Appointment removed' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-// @desc    Send appointment reminder
-// @route   POST /api/appointments/:id/reminder
-// @access  Private
-exports.sendReminder = async (req, res) => {
-  try {
-    const appointment = await Appointment.findById(req.params.id)
-      .populate('client', 'name email phone')
-      .populate('lawyer', 'name email phone barNumber');
-
-    if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found' });
-    }
-
-    // Check if user has access to this appointment
-    if (req.user.userType === 'client' && appointment.client._id.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    if (req.user.userType === 'lawyer' && appointment.lawyer._id.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    // Create email transporter
-    const transporter = nodemailer.createTransporter({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-    // Send email to client
-    const clientMailOptions = {
-      from: process.env.EMAIL_USER,
-      to: appointment.client.email,
-      subject: `Reminder: ${appointment.title}`,
-      html: `
-        <h2>Appointment Reminder</h2>
-        <p>You have an appointment scheduled with ${appointment.lawyer.name}.</p>
-        <p><strong>Title:</strong> ${appointment.title}</p>
-        <p><strong>Date & Time:</strong> ${appointment.date}</p>
-        <p><strong>Duration:</strong> ${appointment.duration} minutes</p>
-        ${appointment.description ? `<p><strong>Description:</strong> ${appointment.description}</p>` : ''}
-      `
-    };
-
-    // Send email to lawyer
-    const lawyerMailOptions = {
-      from: process.env.EMAIL_USER,
-      to: appointment.lawyer.email,
-      subject: `Reminder: ${appointment.title}`,
-      html: `
-        <h2>Appointment Reminder</h2>
-        <p>You have an appointment scheduled with ${appointment.client.name}.</p>
-        <p><strong>Title:</strong> ${appointment.title}</p>
-        <p><strong>Date & Time:</strong> ${appointment.date}</p>
-        <p><strong>Duration:</strong> ${appointment.duration} minutes</p>
-        ${appointment.description ? `<p><strong>Description:</strong> ${appointment.description}</p>` : ''}
-      `
-    };
-
-    await transporter.sendMail(clientMailOptions);
-    await transporter.sendMail(lawyerMailOptions);
-
-    // Update appointment reminder status
-    appointment.reminderSent = true;
-    await appointment.save();
-
-    res.json({ message: 'Reminder sent successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
+  res.status(200).json({ success: true, message: 'Appointment reminder sent' });
+});

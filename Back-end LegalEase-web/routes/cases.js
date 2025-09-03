@@ -4,10 +4,13 @@ const {
   getCase,
   createCase,
   updateCase,
-  addNote,
+  addDocument, // controller
+  addNote,     // controller
   deleteCase
 } = require('../controllers/caseController');
+
 const { protect, authorize } = require('../middleware/auth');
+const { uploadDocument } = require('../middleware/upload'); // middleware
 
 const router = express.Router({ mergeParams: true });
 
@@ -22,7 +25,10 @@ router.route('/:id')
   .put(updateCase)
   .delete(authorize('lawyer'), deleteCase);
 
+router.route('/:id/documents')
+  .post(uploadDocument.single('document'), addDocument); // ensure both are functions
+
 router.route('/:id/notes')
-  .post(addNote);
+  .post(addNote); // ensure addNote is exported and a function
 
 module.exports = router;

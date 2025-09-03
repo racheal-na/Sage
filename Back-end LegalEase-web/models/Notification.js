@@ -19,10 +19,15 @@ const notificationSchema = new mongoose.Schema({
         ref:'User',
         required:true
     },
-    relatedEntity:{
-        type:mongoose.Schema.Types.ObjectId,
-        refPath:'onModel'
+     relatedEntity: {
+    entityType: {
+      type: String,
+      enum: ['Case', 'Appointment', 'Constitution', 'User']
     },
+    entityId: {
+      type: mongoose.Schema.Types.ObjectId
+    }
+  },
     onModel:{
         type:String,
         enum:['Case','Document','Appointment']
@@ -36,5 +41,6 @@ const notificationSchema = new mongoose.Schema({
         default:Date.now
     }
 });
-
+notificationSchema.index({ recipient: 1, isRead: 1 });
+notificationSchema.index({ createdAt: 1 });
 module.exports = mongoose.model('Notification',notificationSchema)
