@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:6000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Create axios instance
 const api = axios.create({
@@ -24,7 +24,7 @@ export const login = (email, password) => {
 
 export  async  function register (userData) {
   console.log("Start")
-  return api.post('auth/register', userData).then((res) => res.data);
+  return api.post('/auth/register', userData).then((res) => res.data);
 };
 
 export const getProfile = () => {
