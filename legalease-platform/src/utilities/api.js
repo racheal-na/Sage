@@ -22,8 +22,9 @@ export const login = (email, password) => {
   return api.post('/auth/login', { email, password }).then((res) => res.data);
 };
 
-export const register = (userData) => {
-  return api.post('/auth/register', userData).then((res) => res.data);
+export  async  function register (userData) {
+  console.log("Start")
+  return api.post('auth/register', userData).then((res) => res.data);
 };
 
 export const getProfile = () => {

@@ -34,7 +34,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/search', require('./routes/search'));
 app.use('/api/calendar', require('./routes/calendar'));
 
-const PORT = process.env.PORT || 6000;
+const PORT = 5000;
 
 // For real-time functionality, we set up socket.io
 const http = require('http');

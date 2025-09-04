@@ -62,7 +62,7 @@ function App() {
           <Header />
           <main>
             <Routes>
-              <Route path="/" element={<Login />} />
+              <Route path="/" element={<Dashboard/>} />
               <Route path="/register" element={<Register />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/cases" element={<Cases />} />
@@ -71,6 +71,7 @@ function App() {
               <Route path="/constitution" element={<Constitution />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/login" element={<Login/>} />
             </Routes>
           </main>
           <ToastContainer position="bottom-right" />
