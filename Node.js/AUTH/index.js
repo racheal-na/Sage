@@ -1,82 +1,103 @@
-const express = require("express")
-const mongoose = require("mongoose")
+const express = require("express");
+const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken")
-const app = express()
+const jwt = require("jsonwebtoken");
+
+const app = express();
 
 
-mongoose.connect("mongodb://localhost:27017/abay")
-.then(()=>console.log("mongodb connected"))
+app.use(express.json());
 
 
-app.use(express.json())
+mongoose.connect("mongodb+srv://legalease:lura1219@legalease-cluster.bqanect.mongodb.net/?retryWrites=true&w=majority&appName=LegalEase-cluster")
+    .then(() => console.log("MongoDB connected"))
+    .catch(err => console.error("MongoDB error:", err));
 
 
-function auth(req,res,next){
+function auth(req, res, next) {
     const token = req.headers["authorization"];
-    if (!token) return res.status(401).json({ error: "No token" });
-    jwt.verify(token,"sage",(err,decoded)=>{
-        if(err) res.status(403).send("unauthorized")
-        console.log(decoded)
-        req.user = decoded
-        next()
-    })
+    if (!token) return res.status(401).json({ error: "No token provided" });
+
+    jwt.verify(token, "naba", (err, decoded) => {
+        if (err) return res.status(403).send("Unauthorized");
+        req.user = decoded;
+        next();
+    });
 }
 
 
-const userSchema = new mongoose.Schema({
-    name: {type:String, required: true},
-    phoneNumber: {type:Number, unique: true, required: true},
-    gender: {type:String},
-    password: String,
-    balance: {type:Number, default: 0}
+function authRole(requiredRole) {
+    return (req, res, next) => {
+        if (!req.user.role || req.user.role !== requiredRole) {
+            return res.status(403).send("Forbidden");
+        }
+        next();
+    };
+}
+
+
+const ShoesSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    brand: { type: String, required: true },
+    Size: { type: Number, required: true },
+    CustomerNumber: { type: Number, unique: true, required: true },
+    password: { type: String, required: true },
+    role: { type: String, default: "user" },
+    Collections: { type: String }
+});
+
+const ShoesModel = mongoose.model("Shoes", ShoesSchema);
+
+
+app.post("/register", async (req, res) => {
+    
+        const { name, CustomerNumber, brand, Size, password, role, Collections } = req.body;
+        
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const Shoes = new ShoesModel({name,CustomerNumber,brand,Size,
+            password: hashedPassword,role: role || "user",Collections
+        })
+
+        await Shoes.save();
+        res.status(201).json({ message: "Shoes registered" });
+
+   
+});
+
+
+app.post("/login", async (req, res) => {
+
+    const { CustomerNumber, password } = req.body;
+    const Shoes = await ShoesModel.findOne({ CustomerNumber });
+    if (!Shoes) return res.status(404).json({ message: "User not found" });
+
+    const isMatch = await bcrypt.compare(password, Shoes.password);
+    if (!isMatch) return res.status(401).json({ message: "Incorrect credentials" });
+    delete Shoes.password;
+    const token = jwt.sign(
+        { id: Shoes.id, name: Shoes.name, CustomerNumber: Shoes.CustomerNumber, role: Shoes.role },
+        "tsiony")
+    return res.json({ name: Shoes.name, CustomerNumber: Shoes.CustomerNumber, role: Shoes.role, token })
+
 })
 
 
-const UserModel = mongoose.model("user",userSchema)
+app.get("/showCollections", auth, async (req, res) => {
 
-
-app.post("/createAccount",async (req,res)=>{
-    const {name,phoneNumber,gender,password} = req.body
-    const hashedPassword = await bcrypt.hash(password,8)
-    const user = new UserModel({name,phoneNumber,gender,password:hashedPassword})
-    await user.save()
-    res.status(200).json(user)
+    const Shoes = await ShoesModel.findById(req.user.id);
+    res.send("welcome to the Collections " + Shoes.Collections + "<br/>>" + "your shoes collection is "
+        + Shoes.brand)
 })
 
+app.get("/admin", auth, authRole("admin"), async (req, res) => {
 
-app.post("/login", async (req,res)=>{
-    const { phoneNumber, password } = req.body
-    const user = await UserModel.findOne({phoneNumber})
-    if(!user) return res.status(404).json({
-        message: "user not found"
-    })
-
-
-    const isMatch = bcrypt.compare(password, user.password)
-    if(!isMatch) return res.status(404).json({
-        message: "incorrect phone number or password"
-    })
-    delete user.password
-    const token = jwt.sign({ id:user.id, name:user.name, phoneNumber: user.phoneNumber},"sage")
- 
-    return res.json({name:user.name, phoneNumber: user.phoneNumber, token:  token})
-
+    const users = await ShoesModel.find();
+    res.json(users);
 
 })
 
 
-app.get("/showBalance",auth,async (req,res)=>{
-    const user = await UserModel.findById(req.user.id)
-    res.send("welcome user " + user.name +"<br/>>" + "your account Balance is: " + user.balance)
-})
-
-
-
-
-
-
-app.listen(5600,()=>{
-    console.log("server started")
-})
-
+app.listen(2500, () => {
+    console.log("Server started");
+});
