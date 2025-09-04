@@ -1,0 +1,192 @@
+.search-bar {
+  position: relative;
+  margin-right: 1rem;
+}
+
+.search-input-container {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.search-button {
+  background: #3498db;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 400px;
+  max-height: 500px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 1000;
+  margin-top: 0.5rem;
+}
+
+.search-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  background: #f8f9fa;
+}
+
+.search-results-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+.close-results {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #7f8c8d;
+}
+
+.close-results:hover {
+  color: #2c3e50;
+}
+
+.result-section {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.result-section:last-child {
+  border-bottom: none;
+}
+
+.result-section h4 {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.result-item {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.result-link {
+  display: block;
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.result-link:hover {
+  text-decoration: underline;
+}
+
+.result-details {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #7f8c8d;
+}
+
+.result-type {
+  background: #e8f4fc;
+  color: #3498db;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+}
+
+.result-description {
+  font-size: 0.8rem;
+}
+
+.no-results {
+  padding: 2rem;
+  text-align: center;
+  color: #7f8c8d;
+}
+
+/* Status badges */
+.status {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.status-open {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-closed {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-scheduled {
+  background-color: #cce5ff;
+  color: #004085;
+}
+
+.status-completed {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-cancelled {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .search-bar {
+    margin: 0.5rem 0;
+    width: 100%;
+  }
+  
+  .search-results {
+    width: 100%;
+    right: 0;
+    left: 0;
+  }
+}
