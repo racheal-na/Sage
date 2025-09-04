@@ -9,7 +9,7 @@ export const initSocket = (token, userId) => {
   }
 
   // Create new socket connection
-  socket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
+  socket = io(process.env.REACT_APP_API_URL || 'http://localhost:6000/api', {
     auth: {
       token
     },
@@ -79,7 +79,7 @@ export const disconnectSocket = () => {
 };
 
 // Helper function to emit events with error handling
-export const emitWithAck = (event, data, timeout = 5000) => {
+export const emitWithAck = (event, data, timeout = 6000) => {
   return new Promise((resolve, reject) => {
     if (!socket) {
       reject(new Error('Socket not connected'));
